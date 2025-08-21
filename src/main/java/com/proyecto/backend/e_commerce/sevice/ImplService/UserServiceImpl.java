@@ -1,6 +1,5 @@
 package com.proyecto.backend.e_commerce.sevice.ImplService;
 
-import com.proyecto.backend.e_commerce.Dtos.LoginDto;
 import com.proyecto.backend.e_commerce.Dtos.RegisterDto;
 import com.proyecto.backend.e_commerce.domain.Role;
 import com.proyecto.backend.e_commerce.domain.User;
@@ -11,9 +10,7 @@ import com.proyecto.backend.e_commerce.repository.UserRepository;
 import com.proyecto.backend.e_commerce.security.JwtTokenProvider;
 import com.proyecto.backend.e_commerce.sevice.Iservice.IUserService;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 

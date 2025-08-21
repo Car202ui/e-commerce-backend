@@ -5,10 +5,12 @@ import com.proyecto.backend.e_commerce.domain.Product;
 import com.proyecto.backend.e_commerce.exception.ResourceNotFoundException;
 import com.proyecto.backend.e_commerce.repository.ProductRepository;
 import com.proyecto.backend.e_commerce.sevice.Iservice.IProductService;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Service
 public class ProductServiceImpl implements IProductService {
 
     private final ProductRepository productRepository;

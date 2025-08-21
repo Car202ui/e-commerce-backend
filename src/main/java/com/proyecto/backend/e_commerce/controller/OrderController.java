@@ -1,8 +1,8 @@
 package com.proyecto.backend.e_commerce.controller;
 
-import com.proyecto.backend.e_commerce.Dtos.CreateOrderRequestDto;
-import com.proyecto.backend.e_commerce.Dtos.OrderDto;
-import com.proyecto.backend.e_commerce.sevice.Iservice.IOrderService;
+import com.proyecto.backend.e_commerce.dto.CreateOrderRequestDto;
+import com.proyecto.backend.e_commerce.dto.OrderDto;
+import com.proyecto.backend.e_commerce.service.Iservice.IOrderService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

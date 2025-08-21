@@ -1,6 +1,6 @@
-package com.proyecto.backend.e_commerce.sevice.Iservice;
+package com.proyecto.backend.e_commerce.service.Iservice;
 
-import com.proyecto.backend.e_commerce.Dtos.InventoryDto;
+import com.proyecto.backend.e_commerce.dto.InventoryDto;
 
 public interface IInventoryService {
     InventoryDto setInventory(Long productId, Integer quantity);

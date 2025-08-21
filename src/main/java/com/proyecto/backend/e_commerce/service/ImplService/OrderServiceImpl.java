@@ -1,21 +1,17 @@
-package com.proyecto.backend.e_commerce.sevice.ImplService;
+package com.proyecto.backend.e_commerce.service.ImplService;
 
-import com.proyecto.backend.e_commerce.Dtos.CreateOrderRequestDto;
-import com.proyecto.backend.e_commerce.Dtos.OrderDto;
-import com.proyecto.backend.e_commerce.Dtos.OrderItemDto;
-import com.proyecto.backend.e_commerce.Dtos.OrderItemRequestDto;
+import com.proyecto.backend.e_commerce.dto.*;
 import com.proyecto.backend.e_commerce.domain.*;
 import com.proyecto.backend.e_commerce.exception.ResourceNotFoundException;
-import com.proyecto.backend.e_commerce.repository.InventoryRepository;
-import com.proyecto.backend.e_commerce.repository.OrderRepository;
-import com.proyecto.backend.e_commerce.repository.ProductRepository;
-import com.proyecto.backend.e_commerce.repository.UserRepository;
-import com.proyecto.backend.e_commerce.sevice.Iservice.IOrderService;
+import com.proyecto.backend.e_commerce.repository.*;
+import com.proyecto.backend.e_commerce.service.Iservice.IOrderService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -28,12 +24,23 @@ public class OrderServiceImpl  implements IOrderService {
     private final ProductRepository productRepository;
     private final InventoryRepository inventoryRepository;
     private final UserRepository userRepository;
+    private final OrderItemRepository orderItemRepository;
 
-    public OrderServiceImpl(OrderRepository orderRepository, ProductRepository productRepository, InventoryRepository inventoryRepository, UserRepository userRepository) {
+    @Value("${promotion.discount.enabled}")
+    private boolean promotionEnabled;
+
+    @Value("${promotion.discount.start-date}")
+    private LocalDateTime promotionStartDate;
+
+    @Value("${promotion.discount.end-date}")
+    private LocalDateTime promotionEndDate;
+
+    public OrderServiceImpl(OrderRepository orderRepository, ProductRepository productRepository, InventoryRepository inventoryRepository, UserRepository userRepository, OrderItemRepository orderItemRepository) {
         this.orderRepository = orderRepository;
         this.productRepository = productRepository;
         this.inventoryRepository = inventoryRepository;
         this.userRepository = userRepository;
+        this.orderItemRepository = orderItemRepository;
     }
 
     @Override
@@ -45,24 +52,20 @@ public class OrderServiceImpl  implements IOrderService {
 
         Order order = new Order();
         order.setUser(currentUser);
-        order.setStatus("PENDING");
+        order.setStatus("COMPLETED");
 
         List<OrderItem> orderItems = new ArrayList<>();
         BigDecimal totalAmount = BigDecimal.ZERO;
 
-
         for (OrderItemRequestDto itemDto : orderRequest.getItems()) {
             Product product = productRepository.findById(itemDto.getProductId())
                     .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado con id: " + itemDto.getProductId()));
-
             Inventory inventory = inventoryRepository.findByProductId(product.getId())
                     .orElseThrow(() -> new ResourceNotFoundException("Inventario no encontrado para el producto: " + product.getName()));
-
 
             if (inventory.getQuantity() < itemDto.getQuantity()) {
                 throw new IllegalArgumentException("Stock insuficiente para el producto: " + product.getName());
             }
-
 
             OrderItem orderItem = new OrderItem();
             orderItem.setProduct(product);
@@ -71,24 +74,45 @@ public class OrderServiceImpl  implements IOrderService {
             orderItem.setOrder(order);
             orderItems.add(orderItem);
 
-
             totalAmount = totalAmount.add(product.getPrice().multiply(BigDecimal.valueOf(itemDto.getQuantity())));
-
 
             inventory.setQuantity(inventory.getQuantity() - itemDto.getQuantity());
             inventoryRepository.save(inventory);
         }
 
+        BigDecimal discountApplied = calculateDiscount(totalAmount, currentUser, orderRequest.isRandomOrder());
+        BigDecimal finalAmount = totalAmount.subtract(discountApplied);
+
         order.setItems(orderItems);
         order.setTotalAmount(totalAmount);
-
-
-        order.setFinalAmount(totalAmount);
+        order.setDiscountApplied(discountApplied);
+        order.setFinalAmount(finalAmount);
 
         Order savedOrder = orderRepository.save(order);
-
         return mapToDto(savedOrder);
     }
+
+
+    private BigDecimal calculateDiscount(BigDecimal totalAmount, User user, boolean isRandomOrder) {
+        LocalDateTime now = LocalDateTime.now();
+
+        if (isRandomOrder && promotionEnabled && now.isAfter(promotionStartDate) && now.isBefore(promotionEndDate)) {
+            return totalAmount.multiply(new BigDecimal("0.50"));
+        }
+
+        BigDecimal totalDiscount = BigDecimal.ZERO;
+
+        if (promotionEnabled && now.isAfter(promotionStartDate) && now.isBefore(promotionEndDate)) {
+            totalDiscount = totalDiscount.add(totalAmount.multiply(new BigDecimal("0.10")));
+        }
+
+        if (user.isFrequent()) {
+            totalDiscount = totalDiscount.add(totalAmount.multiply(new BigDecimal("0.05")));
+        }
+
+        return totalDiscount;
+    }
+
 
     @Override
     public OrderDto getOrderById(Long orderId) {
@@ -131,4 +155,16 @@ public class OrderServiceImpl  implements IOrderService {
         dto.setPricePerUnit(item.getPricePerUnit());
         return dto;
     }
+
+    @Override
+    public List<TopSoldProductDto> getTop5BestSellingProducts() {
+        return orderItemRepository.findTop5BestSellingProducts();
+    }
+
+    @Override
+    public List<TopCustomerDto> getTop5FrequentCustomers() {
+        return orderRepository.findTop5FrequentCustomers();
+    }
+
+
 }

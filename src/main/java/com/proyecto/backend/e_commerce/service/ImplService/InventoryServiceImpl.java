@@ -1,12 +1,12 @@
-package com.proyecto.backend.e_commerce.sevice.ImplService;
+package com.proyecto.backend.e_commerce.service.ImplService;
 
-import com.proyecto.backend.e_commerce.Dtos.InventoryDto;
+import com.proyecto.backend.e_commerce.dto.InventoryDto;
 import com.proyecto.backend.e_commerce.domain.Inventory;
 import com.proyecto.backend.e_commerce.domain.Product;
 import com.proyecto.backend.e_commerce.exception.ResourceNotFoundException;
 import com.proyecto.backend.e_commerce.repository.InventoryRepository;
 import com.proyecto.backend.e_commerce.repository.ProductRepository;
-import com.proyecto.backend.e_commerce.sevice.Iservice.IInventoryService;
+import com.proyecto.backend.e_commerce.service.Iservice.IInventoryService;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

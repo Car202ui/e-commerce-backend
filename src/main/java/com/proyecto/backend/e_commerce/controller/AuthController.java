@@ -1,10 +1,10 @@
 package com.proyecto.backend.e_commerce.controller;
 
 
-import com.proyecto.backend.e_commerce.Dtos.JwtAuthResponseDto;
-import com.proyecto.backend.e_commerce.Dtos.LoginDto;
-import com.proyecto.backend.e_commerce.Dtos.RegisterDto;
-import com.proyecto.backend.e_commerce.sevice.Iservice.IUserService;
+import com.proyecto.backend.e_commerce.dto.JwtAuthResponseDto;
+import com.proyecto.backend.e_commerce.dto.LoginDto;
+import com.proyecto.backend.e_commerce.dto.RegisterDto;
+import com.proyecto.backend.e_commerce.service.Iservice.IUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;

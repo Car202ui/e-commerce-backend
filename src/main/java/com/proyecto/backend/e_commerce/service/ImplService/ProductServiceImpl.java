@@ -1,10 +1,10 @@
-package com.proyecto.backend.e_commerce.sevice.ImplService;
+package com.proyecto.backend.e_commerce.service.ImplService;
 
-import com.proyecto.backend.e_commerce.Dtos.ProductDto;
+import com.proyecto.backend.e_commerce.dto.ProductDto;
 import com.proyecto.backend.e_commerce.domain.Product;
 import com.proyecto.backend.e_commerce.exception.ResourceNotFoundException;
 import com.proyecto.backend.e_commerce.repository.ProductRepository;
-import com.proyecto.backend.e_commerce.sevice.Iservice.IProductService;
+import com.proyecto.backend.e_commerce.service.Iservice.IProductService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -79,5 +79,19 @@ public class ProductServiceImpl implements IProductService {
         product.setPrice(dto.getPrice());
         product.setActive(dto.isActive());
         return product;
+    }
+
+    @Override
+    public List<ProductDto> getActiveProducts() {
+        return productRepository.findByIsActiveTrue().stream()
+                .map(this::mapToDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<ProductDto> searchProductsByName(String name) {
+        return productRepository.findByNameContainingIgnoreCase(name).stream()
+                .map(this::mapToDto)
+                .collect(Collectors.toList());
     }
 }

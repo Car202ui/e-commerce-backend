@@ -1,6 +1,7 @@
-package com.proyecto.backend.e_commerce.sevice.ImplService;
+package com.proyecto.backend.e_commerce.service.ImplService;
 
-import com.proyecto.backend.e_commerce.Dtos.RegisterDto;
+import com.proyecto.backend.e_commerce.dto.RegisterDto;
+import com.proyecto.backend.e_commerce.dto.UserDto;
 import com.proyecto.backend.e_commerce.domain.Role;
 import com.proyecto.backend.e_commerce.domain.User;
 import com.proyecto.backend.e_commerce.exception.ResourceAlreadyExistsException;
@@ -8,14 +9,17 @@ import com.proyecto.backend.e_commerce.exception.ResourceNotFoundException;
 import com.proyecto.backend.e_commerce.repository.RoleRepository;
 import com.proyecto.backend.e_commerce.repository.UserRepository;
 import com.proyecto.backend.e_commerce.security.JwtTokenProvider;
-import com.proyecto.backend.e_commerce.sevice.Iservice.IUserService;
+import com.proyecto.backend.e_commerce.service.Iservice.IUserService;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements IUserService {
@@ -63,6 +67,34 @@ public class UserServiceImpl implements IUserService {
     @Override
     public String generateToken(Authentication authentication) {
         return jwtTokenProvider.generateToken(authentication);
+    }
+
+    private UserDto mapToUserDto(User user) {
+        UserDto userDto = new UserDto();
+        userDto.setId(user.getId());
+        userDto.setUsername(user.getUsername());
+        userDto.setEmail(user.getEmail());
+        userDto.setFirstName(user.getFirstName());
+        userDto.setLastName(user.getLastName());
+        userDto.setFrequent(user.isFrequent());
+        userDto.setRoles(user.getRoles().stream().map(Role::getName).collect(Collectors.toSet()));
+        return userDto;
+    }
+
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserDto> getAllUsers() {
+        return userRepository.findAll().stream()
+                .map(this::mapToUserDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public UserDto getUserById(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con id: " + userId));
+        return mapToUserDto(user);
     }
 
 

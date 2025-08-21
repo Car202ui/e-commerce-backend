@@ -1,4 +1,4 @@
-package com.proyecto.backend.e_commerce.Dtos;
+package com.proyecto.backend.e_commerce.dto;
 
 import lombok.Data;
 
@@ -8,4 +8,5 @@ import java.util.List;
 public class CreateOrderRequestDto {
 
     private List<OrderItemRequestDto> items;
+    private boolean isRandomOrder;
 }

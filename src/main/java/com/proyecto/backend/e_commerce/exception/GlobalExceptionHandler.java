@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authorization.AuthorizationDeniedException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -20,10 +20,9 @@ import java.util.Map;
 public class GlobalExceptionHandler{
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-
-    @ExceptionHandler(AuthorizationDeniedException.class)
-    public ResponseEntity<ErrorDetailsDto> handleAuthorizationDeniedException(AuthorizationDeniedException exception, WebRequest webRequest) {
-        ErrorDetailsDto errorDetails = new ErrorDetailsDto(new Date(), "Acceso denegado. No tienes los permisos necesarios.", webRequest.getDescription(false));
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorDetailsDto> handleAccessDeniedException(AccessDeniedException exception, WebRequest webRequest) {
+        ErrorDetailsDto errorDetails = new ErrorDetailsDto(new Date(), "Acceso denegado. No tienes los permisos necesarios para realizar esta acción.", webRequest.getDescription(false));
         return new ResponseEntity<>(errorDetails, HttpStatus.FORBIDDEN);
     }
     @ExceptionHandler(ResourceAlreadyExistsException.class)

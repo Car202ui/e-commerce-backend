@@ -21,14 +21,20 @@
 		<java.version>17</java.version>
 		<maven.compiler.release>${java.version}</maven.compiler.release>
 
-
+		<!-- versions -->
 		<maven.compiler.plugin.version>3.11.0</maven.compiler.plugin.version>
 		<surefire.version>3.2.5</surefire.version>
 		<jacoco.version>0.8.12</jacoco.version>
 		<lombok.version>1.18.34</lombok.version>
+		<springdoc.version>2.5.0</springdoc.version>
+
+	
 		<jacoco.min.line>0.70</jacoco.min.line>
 
-		<springdoc.version>2.5.0</springdoc.version>
+
+		<checkstyle.plugin.version>3.3.1</checkstyle.plugin.version>
+		<pmd.plugin.version>3.21.2</pmd.plugin.version>
+		<spotbugs.plugin.version>4.8.6.4</spotbugs.plugin.version>
 	</properties>
 
 	<dependencies>
@@ -60,7 +66,6 @@
 			<scope>runtime</scope>
 		</dependency>
 
-
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
@@ -68,7 +73,6 @@
 			<scope>provided</scope>
 			<optional>true</optional>
 		</dependency>
-
 
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
@@ -88,14 +92,13 @@
 			<scope>runtime</scope>
 		</dependency>
 
-
 		<dependency>
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
 			<version>${springdoc.version}</version>
 		</dependency>
 
-
+		<!-- tests -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
@@ -106,18 +109,17 @@
 			<artifactId>spring-security-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
 			<scope>test</scope>
 		</dependency>
-
 	</dependencies>
 
 	<build>
 		<plugins>
 
+			<!-- Compiler -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -134,7 +136,7 @@
 				</configuration>
 			</plugin>
 
-
+			<!-- Tests (único, sin duplicados) -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
@@ -147,23 +149,13 @@
 				</configuration>
 			</plugin>
 
-
+			<!-- Spring Boot -->
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
 
-
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<version>${surefire.version}</version>
-				<configuration>
-					<useModulePath>false</useModulePath>
-				</configuration>
-			</plugin>
-
-
+			<!-- JaCoCo -->
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
@@ -199,7 +191,6 @@
 											<minimum>${jacoco.min.line}</minimum>
 										</limit>
 									</limits>
-
 									<excludes>
 										<exclude>com/proyecto/backend/e_commerce/domain/**</exclude>
 										<exclude>com/proyecto/backend/e_commerce/dto/**</exclude>
@@ -215,6 +206,74 @@
 					</execution>
 				</executions>
 			</plugin>
+
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+				<version>${checkstyle.plugin.version}</version>
+				<configuration>
+					<configLocation>google_checks.xml</configLocation>
+					<encoding>UTF-8</encoding>
+					<consoleOutput>true</consoleOutput>
+					<failsOnError>false</failsOnError>
+					<failOnViolation>false</failOnViolation>
+					<includeTestSourceDirectory>true</includeTestSourceDirectory>
+					<violationSeverity>warning</violationSeverity>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>verify</phase>
+						<goals>
+							<goal>checkstyle</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- PMD + CPD (no rompe el build) -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-pmd-plugin</artifactId>
+				<version>${pmd.plugin.version}</version>
+				<configuration>
+					<printFailingErrors>true</printFailingErrors>
+					<failOnViolation>false</failOnViolation>
+					<linkXref>false</linkXref>
+					<targetJdk>${java.version}</targetJdk>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>verify</phase>
+						<goals>
+							<goal>pmd</goal>
+							<goal>cpd</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- SpotBugs (no rompe el build; genera XML/HTML) -->
+			<plugin>
+				<groupId>com.github.spotbugs</groupId>
+				<artifactId>spotbugs-maven-plugin</artifactId>
+				<version>${spotbugs.plugin.version}</version>
+				<configuration>
+					<effort>Max</effort>
+					<threshold>Low</threshold>
+					<failOnError>false</failOnError>
+					<xmlOutput>true</xmlOutput>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>verify</phase>
+						<goals>
+							<goal>spotbugs</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
 		</plugins>
 	</build>
 </project>

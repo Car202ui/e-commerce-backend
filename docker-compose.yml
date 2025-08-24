@@ -27,9 +27,17 @@ services:
         condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5434/ecommerce
+
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/ecommerce
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+
+
+      SPRING_LIQUIBASE_URL: jdbc:postgresql://db:5432/ecommerce
+      SPRING_LIQUIBASE_USER: postgres
+      SPRING_LIQUIBASE_PASSWORD: ${POSTGRES_PASSWORD}
+
+
       APP_JWT_SECRET: ${APP_JWT_SECRET}
       APP_JWT_EXPIRATION_MILLISECONDS: ${APP_JWT_EXPIRATION_MILLISECONDS:-604800000}
     ports:

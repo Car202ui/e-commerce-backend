@@ -35,3 +35,5 @@ build/
 # Ignorar archivos de configuración local con secretos
 application-local.properties
 
+.env
+

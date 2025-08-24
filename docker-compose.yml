@@ -1,21 +1,24 @@
 services:
   db:
-    container_name: ec_db
     image: postgres:15-alpine
+    container_name: ec_db
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
       POSTGRES_DB: ecommerce
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "5434:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d ecommerce || exit 1"]
-      interval: 5s
-      timeout: 3s
-      retries: 30
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ecommerce"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   api:
     container_name: ec_api
+    image: e-commerce-api
     build:
       context: .
       dockerfile: Dockerfile
@@ -24,8 +27,14 @@ services:
         condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/ecommerce
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5434/ecommerce
       SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      APP_JWT_SECRET: ${APP_JWT_SECRET}
+      APP_JWT_EXPIRATION_MILLISECONDS: ${APP_JWT_EXPIRATION_MILLISECONDS:-604800000}
     ports:
-      - "9092:9091"   # usa 9092 en tu host para evitar conflictos con algo local
+      - "9092:9091"
+    restart: unless-stopped
+
+volumes:
+  pgdata:

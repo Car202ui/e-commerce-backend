@@ -20,13 +20,12 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  JACOCO_MIN_LINE: '0.20'   # ajusta si quieres exigir más cobertura
+  JACOCO_MIN_LINE: '0.20'   
 
 jobs:
   build-test:
     runs-on: ubuntu-latest
     timeout-minutes: 25
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -37,7 +36,6 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
           cache: 'maven'
-
       - name: Build & Test (profile=test + JaCoCo)
         run: mvn -B -U clean verify -Dspring.profiles.active=test -Djacoco.min.line=${{ env.JACOCO_MIN_LINE }}
 

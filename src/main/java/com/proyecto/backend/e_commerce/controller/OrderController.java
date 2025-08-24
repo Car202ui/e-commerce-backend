@@ -35,7 +35,7 @@ public class OrderController {
             @ApiResponse(responseCode = "401", description = "No autorizado"),
             @ApiResponse(responseCode = "404", description = "Usuario o producto no encontrado")
     })
-    @PostMapping
+    @PostMapping("/create")
     public ResponseEntity<OrderDto> createOrder(@RequestBody CreateOrderRequestDto orderRequest) {
         OrderDto createdOrder = orderService.createOrder(orderRequest);
         return new ResponseEntity<>(createdOrder, HttpStatus.CREATED);

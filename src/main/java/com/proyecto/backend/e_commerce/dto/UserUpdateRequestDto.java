@@ -5,12 +5,12 @@ import lombok.Data;
 import java.util.Set;
 
 @Data
-public class UserDto {
-    private Long id;
+public class UserUpdateRequestDto {
+
     private String username;
     private String email;
     private String firstName;
     private String lastName;
-    private boolean isFrequent;
-    private Set<RoleDto> roles;
+    private Boolean frequent;
+    private Set<String> roles;
 }

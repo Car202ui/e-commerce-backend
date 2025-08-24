@@ -1,6 +1,7 @@
 package com.proyecto.backend.e_commerce.domain;
 
 
+import com.proyecto.backend.e_commerce.listeners.AuditListener;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -8,7 +9,7 @@ import lombok.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(of = "id")
 @Entity
 @Table(name = "roles")
 public class Role {

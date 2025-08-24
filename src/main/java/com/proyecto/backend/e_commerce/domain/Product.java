@@ -24,7 +24,7 @@ public class Product {
 
     private String description;
 
-    @Column(nullable = false, precision = 10, scale = 2)
+    @Column(precision = 14, scale = 2, nullable = false)
     private BigDecimal price;
 
     @Column(name = "is_active", nullable = false)

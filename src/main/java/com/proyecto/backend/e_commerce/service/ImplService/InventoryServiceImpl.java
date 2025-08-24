@@ -38,7 +38,7 @@ public class InventoryServiceImpl implements IInventoryService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado con id: " + productId));
 
-        Inventory inventory = inventoryRepository.findByProductId(productId)
+        Inventory inventory = inventoryRepository.findByProduct_Id(productId)
                 .orElse(new Inventory());
 
         inventory.setProduct(product);
@@ -51,7 +51,7 @@ public class InventoryServiceImpl implements IInventoryService {
     @Override
     @Transactional
     public InventoryDto updateInventory(Long productId, Integer quantityChange) {
-        Inventory inventory = inventoryRepository.findByProductId(productId)
+        Inventory inventory = inventoryRepository.findByProduct_Id(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Inventario no encontrado para el producto con id: " + productId));
 
         int newQuantity = inventory.getQuantity() + quantityChange;
@@ -66,7 +66,7 @@ public class InventoryServiceImpl implements IInventoryService {
 
     @Override
     public InventoryDto getInventoryByProductId(Long productId) {
-        Inventory inventory = inventoryRepository.findByProductId(productId)
+        Inventory inventory = inventoryRepository.findByProduct_Id(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Inventario no encontrado para el producto con id: " + productId));
         return mapToDto(inventory);
     }

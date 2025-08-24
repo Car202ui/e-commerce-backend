@@ -11,14 +11,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;   // <-- añadido
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class OrderServiceImpl  implements IOrderService {
-
+public class OrderServiceImpl implements IOrderService {
 
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
@@ -35,7 +35,13 @@ public class OrderServiceImpl  implements IOrderService {
     @Value("${promotion.discount.end-date}")
     private LocalDateTime promotionEndDate;
 
-    public OrderServiceImpl(OrderRepository orderRepository, ProductRepository productRepository, InventoryRepository inventoryRepository, UserRepository userRepository, OrderItemRepository orderItemRepository) {
+    public OrderServiceImpl(
+            OrderRepository orderRepository,
+            ProductRepository productRepository,
+            InventoryRepository inventoryRepository,
+            UserRepository userRepository,
+            OrderItemRepository orderItemRepository
+    ) {
         this.orderRepository = orderRepository;
         this.productRepository = productRepository;
         this.inventoryRepository = inventoryRepository;
@@ -60,7 +66,7 @@ public class OrderServiceImpl  implements IOrderService {
         for (OrderItemRequestDto itemDto : orderRequest.getItems()) {
             Product product = productRepository.findById(itemDto.getProductId())
                     .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado con id: " + itemDto.getProductId()));
-            Inventory inventory = inventoryRepository.findByProductId(product.getId())
+            Inventory inventory = inventoryRepository.findByProduct_Id(product.getId())
                     .orElseThrow(() -> new ResourceNotFoundException("Inventario no encontrado para el producto: " + product.getName()));
 
             if (inventory.getQuantity() < itemDto.getQuantity()) {
@@ -74,14 +80,28 @@ public class OrderServiceImpl  implements IOrderService {
             orderItem.setOrder(order);
             orderItems.add(orderItem);
 
-            totalAmount = totalAmount.add(product.getPrice().multiply(BigDecimal.valueOf(itemDto.getQuantity())));
+            totalAmount = totalAmount.add(
+                    product.getPrice().multiply(BigDecimal.valueOf(itemDto.getQuantity()))
+            );
 
             inventory.setQuantity(inventory.getQuantity() - itemDto.getQuantity());
             inventoryRepository.save(inventory);
         }
 
-        BigDecimal discountApplied = calculateDiscount(totalAmount, currentUser, orderRequest.isRandomOrder());
-        BigDecimal finalAmount = totalAmount.subtract(discountApplied);
+        // ---------- REDONDEO/SEGURIDAD EN MONTOS ----------
+        totalAmount = totalAmount.setScale(2, RoundingMode.HALF_UP);
+
+        BigDecimal discountApplied = calculateDiscount(totalAmount, currentUser, orderRequest.isRandomOrder())
+                .setScale(2, RoundingMode.HALF_UP);
+
+        // nunca permitir descuento > total
+        if (discountApplied.compareTo(totalAmount) > 0) {
+            discountApplied = totalAmount;
+        }
+
+        BigDecimal finalAmount = totalAmount.subtract(discountApplied)
+                .setScale(2, RoundingMode.HALF_UP);
+        // ---------------------------------------------------
 
         order.setItems(orderItems);
         order.setTotalAmount(totalAmount);
@@ -92,27 +112,36 @@ public class OrderServiceImpl  implements IOrderService {
         return mapToDto(savedOrder);
     }
 
-
     private BigDecimal calculateDiscount(BigDecimal totalAmount, User user, boolean isRandomOrder) {
         LocalDateTime now = LocalDateTime.now();
 
-        if (isRandomOrder && promotionEnabled && now.isAfter(promotionStartDate) && now.isBefore(promotionEndDate)) {
-            return totalAmount.multiply(new BigDecimal("0.50"));
+        if (isRandomOrder && promotionEnabled
+                && now.isAfter(promotionStartDate) && now.isBefore(promotionEndDate)) {
+            // 50%
+            BigDecimal d = totalAmount.multiply(new BigDecimal("0.50"));
+            return d.compareTo(totalAmount) > 0
+                    ? totalAmount.setScale(2, RoundingMode.HALF_UP)
+                    : d.setScale(2, RoundingMode.HALF_UP);
         }
 
         BigDecimal totalDiscount = BigDecimal.ZERO;
 
+        // 10% por promo activa
         if (promotionEnabled && now.isAfter(promotionStartDate) && now.isBefore(promotionEndDate)) {
             totalDiscount = totalDiscount.add(totalAmount.multiply(new BigDecimal("0.10")));
         }
 
+        // 5% por cliente frecuente
         if (user.isFrequent()) {
             totalDiscount = totalDiscount.add(totalAmount.multiply(new BigDecimal("0.05")));
         }
 
-        return totalDiscount;
+        // cap y redondeo
+        if (totalDiscount.compareTo(totalAmount) > 0) {
+            totalDiscount = totalAmount;
+        }
+        return totalDiscount.setScale(2, RoundingMode.HALF_UP);
     }
-
 
     @Override
     public OrderDto getOrderById(Long orderId) {
@@ -131,7 +160,6 @@ public class OrderServiceImpl  implements IOrderService {
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
     }
-
 
     private OrderDto mapToDto(Order order) {
         OrderDto dto = new OrderDto();
@@ -161,10 +189,8 @@ public class OrderServiceImpl  implements IOrderService {
         return orderItemRepository.findTop5BestSellingProducts();
     }
 
-    @Override
     public List<TopCustomerDto> getTop5FrequentCustomers() {
-        return orderRepository.findTop5FrequentCustomers();
+        return orderRepository.findTopFrequentCustomers(
+                org.springframework.data.domain.PageRequest.of(0, 5));
     }
-
-
 }

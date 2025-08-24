@@ -16,4 +16,11 @@ public class RegisterDto {
 
     @NotBlank(message = "La contraseña no puede estar vacía")
     private String password;
+
+
+    @NotBlank(message="El nombre no puede estar vacío")
+    private String firstName;
+
+    @NotBlank(message="El apellido no puede estar vacío")
+    private String lastName;
 }

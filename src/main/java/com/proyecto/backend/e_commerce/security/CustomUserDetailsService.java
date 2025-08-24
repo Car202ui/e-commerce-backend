@@ -23,7 +23,8 @@ public class CustomUserDetailsService  implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByUsername(username)
+        // --- CAMBIO CLAVE: Usar el nuevo método que carga los roles ---
+        User user = userRepository.findByUsernameWithRoles(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado con username: " + username));
 
         Set<GrantedAuthority> authorities = user.getRoles().stream()

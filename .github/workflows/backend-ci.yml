@@ -20,8 +20,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  
-  JACOCO_MIN_LINE: '0.20'
+  JACOCO_MIN_LINE: '0.20'   # ajusta si quieres exigir más cobertura
 
 jobs:
   build-test:
@@ -35,12 +34,12 @@ jobs:
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          distribution: temurin
+          distribution: 'temurin'
           java-version: '17'
-          cache: maven
+          cache: 'maven'
 
-      - name: "Build & Test (Maven verify: tests + JaCoCo)"
-        run: mvn -B -U -Djacoco.min.line=${{ env.JACOCO_MIN_LINE }} clean verify
+      - name: Build & Test (profile=test + JaCoCo)
+        run: mvn -B -U clean verify -Dspring.profiles.active=test -Djacoco.min.line=${{ env.JACOCO_MIN_LINE }}
 
       - name: Upload test & coverage reports (always)
         if: always()

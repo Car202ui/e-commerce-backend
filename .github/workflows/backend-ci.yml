@@ -20,7 +20,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  JACOCO_MIN_LINE: '0.20'   
+  JACOCO_MIN_LINE: '0.20'
 
 jobs:
   build-test:

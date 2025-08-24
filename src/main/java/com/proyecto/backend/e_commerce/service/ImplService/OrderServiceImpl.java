@@ -6,6 +6,7 @@ import com.proyecto.backend.e_commerce.exception.ResourceNotFoundException;
 import com.proyecto.backend.e_commerce.repository.*;
 import com.proyecto.backend.e_commerce.service.Iservice.IOrderService;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -88,20 +89,19 @@ public class OrderServiceImpl implements IOrderService {
             inventoryRepository.save(inventory);
         }
 
-        // ---------- REDONDEO/SEGURIDAD EN MONTOS ----------
         totalAmount = totalAmount.setScale(2, RoundingMode.HALF_UP);
 
         BigDecimal discountApplied = calculateDiscount(totalAmount, currentUser, orderRequest.isRandomOrder())
                 .setScale(2, RoundingMode.HALF_UP);
 
-        // nunca permitir descuento > total
+
         if (discountApplied.compareTo(totalAmount) > 0) {
             discountApplied = totalAmount;
         }
 
         BigDecimal finalAmount = totalAmount.subtract(discountApplied)
                 .setScale(2, RoundingMode.HALF_UP);
-        // ---------------------------------------------------
+
 
         order.setItems(orderItems);
         order.setTotalAmount(totalAmount);
@@ -151,12 +151,14 @@ public class OrderServiceImpl implements IOrderService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<OrderDto> getOrdersForCurrentUser() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         User currentUser = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado: " + username));
 
-        return orderRepository.findByUserId(currentUser.getId()).stream()
+        return orderRepository.findByUserIdOrderByOrderDateDesc(currentUser.getId())
+                .stream()
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
     }
@@ -171,22 +173,34 @@ public class OrderServiceImpl implements IOrderService {
         dto.setTotalAmount(order.getTotalAmount());
         dto.setDiscountApplied(order.getDiscountApplied());
         dto.setFinalAmount(order.getFinalAmount());
-        dto.setItems(order.getItems().stream().map(this::mapItemToDto).collect(Collectors.toList()));
+
+        dto.setItems(
+                order.getItems().stream()
+                        .filter(it -> it.getProduct() != null)
+                        .map(this::mapItemToDto)
+                        .collect(java.util.stream.Collectors.toList())
+        );
         return dto;
     }
 
     private OrderItemDto mapItemToDto(OrderItem item) {
+        Product p = item.getProduct();
+
         OrderItemDto dto = new OrderItemDto();
-        dto.setProductId(item.getProduct().getId());
-        dto.setProductName(item.getProduct().getName());
+        dto.setProductId(p != null ? p.getId() : 0L);
+        dto.setProductName(p != null ? p.getName() : "(producto eliminado)");
         dto.setQuantity(item.getQuantity());
-        dto.setPricePerUnit(item.getPricePerUnit());
+        dto.setPricePerUnit(
+                item.getPricePerUnit() != null
+                        ? item.getPricePerUnit()
+                        : (p != null ? p.getPrice() : java.math.BigDecimal.ZERO)
+        );
         return dto;
     }
 
     @Override
     public List<TopSoldProductDto> getTop5BestSellingProducts() {
-        return orderItemRepository.findTop5BestSellingProducts();
+        return orderItemRepository.findTopBestSellingProducts(PageRequest.of(0, 5));
     }
 
     public List<TopCustomerDto> getTop5FrequentCustomers() {

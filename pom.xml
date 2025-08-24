@@ -21,13 +21,13 @@
 		<java.version>17</java.version>
 		<maven.compiler.release>${java.version}</maven.compiler.release>
 
-		<!-- versiones de build -->
+
 		<maven.compiler.plugin.version>3.11.0</maven.compiler.plugin.version>
 		<surefire.version>3.2.5</surefire.version>
 		<jacoco.version>0.8.12</jacoco.version>
 		<lombok.version>1.18.34</lombok.version>
+		<jacoco.min.line>0.70</jacoco.min.line>
 
-		<!-- libs -->
 		<springdoc.version>2.5.0</springdoc.version>
 	</properties>
 
@@ -60,7 +60,7 @@
 			<scope>runtime</scope>
 		</dependency>
 
-		<!-- Lombok con versión explícita -->
+
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
@@ -69,7 +69,7 @@
 			<optional>true</optional>
 		</dependency>
 
-		<!-- JWT -->
+
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
 			<artifactId>jjwt-api</artifactId>
@@ -88,14 +88,14 @@
 			<scope>runtime</scope>
 		</dependency>
 
-		<!-- OpenAPI -->
+
 		<dependency>
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
 			<version>${springdoc.version}</version>
 		</dependency>
 
-		<!-- Test -->
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
@@ -110,7 +110,7 @@
 
 	<build>
 		<plugins>
-			<!-- Compilador + annotation processors -->
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -127,13 +127,13 @@
 				</configuration>
 			</plugin>
 
-			<!-- Spring Boot -->
+
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
 
-			<!-- Tests -->
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
@@ -143,7 +143,7 @@
 				</configuration>
 			</plugin>
 
-			<!-- Cobertura con JaCoCo -->
+
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
@@ -176,10 +176,10 @@
 										<limit>
 											<counter>LINE</counter>
 											<value>COVEREDRATIO</value>
-											<minimum>0.70</minimum>
+											<minimum>${jacoco.min.line}</minimum>
 										</limit>
 									</limits>
-									<!-- Excluimos clases que no se miden con unit tests -->
+
 									<excludes>
 										<exclude>com/proyecto/backend/e_commerce/domain/**</exclude>
 										<exclude>com/proyecto/backend/e_commerce/dto/**</exclude>
